@@ -76,9 +76,10 @@ where hire_date IN (
 		where to_date > now()
 );
 
+
 #2. Find all the titles ever held by all current employees with the first name Aamod. -251
 
-SELECT title
+SELECT DISTINCT(title)
 FROM titles
 WHERE emp_no IN (
 	SELECT emp_no 
@@ -91,19 +92,16 @@ WHERE emp_no IN (
 		WHERE to_date > now()
 );
 	
-	
-#CHECK against Jacob's joins-- 	select title from titles join employees using(emp_no) join dept_emp using(emp_no) where first_name = "Aamod" and dept_emp.to_date > curdate();
 
-#3. How many people in the employees table are no longer working for the company? Give the answer in a comment in your code.  -85108
-
-SELECT * 
+#3. How many people in the employees table are no longer working for the company? Give the answer in a comment in your code.  -59900
+	 
+SELECT COUNT(*) 
 FROM employees
-WHERE emp_no IN(
+WHERE emp_no NOT IN(
 	SELECT emp_no
 	FROM dept_emp
-	WHERE to_date < now()
-);	
-	 
+	WHERE to_date > now()
+);		 
 
 #4. Find all the current department managers that are female. List their names in a comment in your code.
 # Isamu Legleitner, Karsten Sigstam, Leon DasSarma, Hilary Kambil
@@ -111,13 +109,13 @@ WHERE emp_no IN(
 SELECT * 
 FROM employees
 WHERE emp_no IN (
-	SELECT emp_no
+	SELECT emp_no.        
 	FROM dept_manager 
 	WHERE to_date > now()
 )
 	AND gender = 'F';
 
-#5. Find all the employees who currently have a higher salary than the companies overall, historical average salary.  -178,044
+#5. Find all the employees who currently have a higher salary than the companies overall, historical average salary.  -154,543
 
 select *
 from employees
@@ -126,30 +124,44 @@ where emp_no in (
 	from salaries
 	where salary > (
 		select avg(salary) 
-		from salaries
-)
-);
+		from salaries)
+	and to_date > now()	
+	)
+and emp_no in ( 
+	select emp_no
+	from dept_emp
+	where to_date > now());
     
 
 
-#6. How many current salaries are within 1 standard deviation of the current highest salary? 
+#6. How many current salaries are within 1 standard deviation of the current highest salary? -83
 #(Hint: you can use a built in function to calculate the standard deviation.) What percentage of all salaries is this? (concat a % sign)
-/*   SELECT COUNT(salary)
-    FROM salaries
-        WHERE salaries.to_date >= NOW()
-            AND salary >= 
-            		(SELECT MAX(salary) 
-            		FROM salaries 
-            		WHERE salaries.to_date >= NOW()) - (
-            			SELECT STD(salary) 
-            			FROM salaries 
-            			WHERE salaries.to_date >= NOW()
-            			) ; 
 
-SELECT COUNT(*) FROM salaries
-WHERE salary >=
-    (SELECT MAX(salary) FROM salaries) - (SELECT STD(salary) FROM salaries)
-    AND to_date > NOW(); */
+SELECT COUNT(*) 
+FROM salaries
+WHERE to_date > NOW()
+	AND salary >= (
+		SELECT 
+			MAX(salary) - STDDEV(salary)
+		FROM salaries
+		WHERE to_date > NOW()
+);
+
+SELECT (SELECT COUNT(*)   
+	FROM salaries
+	WHERE to_date > NOW()
+		AND salary >= (
+			SELECT   
+				MAX(salary) - STDDEV(salary) 
+			FROM salaries
+			WHERE to_date > NOW())	
+	)
+	/
+	(SELECT COUNT(*)   --- Total number of current salaries
+	FROM salaries
+	WHERE to_date > NOW())
+	* 100;
+
 
 
 #BONUS------------->
